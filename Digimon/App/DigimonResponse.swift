@@ -6,3 +6,25 @@
 //
 
 import Foundation
+
+// MARK: - DigimonResponse
+struct DigimonResponse: Codable {
+    
+    let content: [Content]
+    let pageable: Pageable
+    
+    // MARK: - Content
+    struct Content: Codable {
+        let id: Int
+        let name: String
+        let href: String
+        let image: String
+    }
+    
+    // MARK: - Pageable
+    struct Pageable: Codable {
+        let currentPage, elementsOnPage, totalElements, totalPages: Int
+        let previousPage: String
+        let nextPage: String
+    }
+}
