@@ -7,9 +7,20 @@
 
 import UIKit
 
+//MARK: EXTENSION VIEW
 extension UIView {
     func addSubviews(_ views: UIView...) {
         views.forEach({ addSubview($0) })
+    }
+}
+
+//MARK: EXTENSION VIEW CONTROLLER
+extension UIViewController {
+    func presentDSAlert(title: String, message: String, handler: ((UIAlertAction) -> Void)? = nil) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        let ok = UIAlertAction(title: "Ok", style: .default, handler: handler)
+        alert.addAction(ok)
+        present(alert, animated: true)
     }
 }
 
@@ -22,4 +33,3 @@ final class DSColor {
 func color(r: CGFloat, g: CGFloat, b: CGFloat, a: CGFloat) -> UIColor {
     return UIColor(red: r / 255, green: g / 255, blue: b / 255, alpha: a)
 }
-
