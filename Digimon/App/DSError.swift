@@ -8,7 +8,7 @@
 import Foundation
 
 enum DSError: String, Error {
-    case networkError = "Não foi possível conectar ao servidor. Verifica sua conexão de internet."
+    case networkError = "Não foi possível conectar ao servidor. Verifique sua conexão de internet."
     case invalidData = "Os dados recebidos do servidor são inválidos. Tente novamente."
     case failedDecoding = "Não foi possível decodificar os dados."
     case digimonsFailed = "Não foi possível carregar os digimons."
