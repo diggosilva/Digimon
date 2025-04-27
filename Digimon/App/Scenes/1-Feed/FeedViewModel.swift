@@ -14,24 +14,26 @@ enum FeedViewControllerStates {
 }
 
 protocol FeedViewModelProtocol {
-    var state: Bindable<FeedViewControllerStates> { get }
-    var loadingText: Bindable<String> { get }
     func numberOfItemsInSection() -> Int
     func cellForItem(at indexPath: IndexPath) -> Digimon
     func fetchDigimons()
     func getDigimons() -> [Digimon]
+    func observeState(_ observer: @escaping (FeedViewControllerStates) -> Void)
+    func observeLoadingText(_ observer: @escaping (String) -> Void)
 }
 
 class FeedViewModel: FeedViewModelProtocol {
-    var state: Bindable<FeedViewControllerStates> = Bindable(value: .loading)
-    var loadingText: Bindable<String> = Bindable(value: "Carregando...")
+    private var state: Bindable<FeedViewControllerStates> = Bindable(value: .loading)
+    
+    private var loadingText: Bindable<String> = Bindable(value: "Carregando...")
     private var loadingTexts = ["Carregando", "Carregando.", "Carregando..", "Carregando..."]
     private var loadingTextsIndex = 0
     private var loadingTimer: Timer?
     
+    private var digimons: [Digimon] = []
+    private var page = 0
+    
     private let service: ServiceProtocol
-    var digimons: [Digimon] = []
-    var page = 100
     
     init(service: ServiceProtocol = Service()) {
         self.service = service
@@ -49,20 +51,18 @@ class FeedViewModel: FeedViewModelProtocol {
         state.value = .loading
         startLoadingAnimation()
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 10) {
-            self.service.getDigimons(page: self.page) { result in
-                switch result {
-                case .success(let digimons):
-                    self.digimons = digimons
-                    print("DEBUG: Fetched \(digimons)")
-                    self.state.value = .loaded
-                    
-                case .failure:
-                    print("DEBUG: Error fetching digimons")
-                    self.state.value = .error
-                }
-                self.stopLoadingAnimation()
+        self.service.getDigimons(page: self.page) { result in
+            switch result {
+            case .success(let digimons):
+                self.digimons = digimons
+                print("DEBUG: Fetched \(digimons)")
+                self.state.value = .loaded
+                
+            case .failure:
+                print("DEBUG: Error fetching digimons")
+                self.state.value = .error
             }
+            self.stopLoadingAnimation()
         }
     }
     
@@ -84,5 +84,13 @@ class FeedViewModel: FeedViewModelProtocol {
     func stopLoadingAnimation() {
         loadingTimer?.invalidate()
         loadingTimer = nil
+    }
+    
+    func observeState(_ observer: @escaping(FeedViewControllerStates) -> Void) {
+        state.bind(observer: observer)
+    }
+    
+    func observeLoadingText(_ observer: @escaping(String) -> Void) {
+        loadingText.bind(observer: observer)
     }
 }

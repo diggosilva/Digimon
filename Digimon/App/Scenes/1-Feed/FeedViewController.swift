@@ -25,7 +25,7 @@ class FeedViewController: UIViewController {
     }
     
     private func handleStates() {
-        viewModel.state.bind { state in
+        viewModel.observeState { state in
             switch state {
             case .loading: self.showLoadingState()
             case .loaded: self.showLoadedState()
@@ -54,7 +54,7 @@ class FeedViewController: UIViewController {
             feedView.bgSpinner.isHidden = false
             feedView.spinner.startAnimating()
             feedView.loadingLabel.isHidden = false
-            loadingAnimate()
+            handleLoadingAnimate()
         } else {
             feedView.bgSpinner.isHidden = true
             feedView.spinner.stopAnimating()
@@ -64,8 +64,8 @@ class FeedViewController: UIViewController {
         }
     }
     
-    private func loadingAnimate() {
-        viewModel.loadingText.bind { [weak self] text in
+    private func handleLoadingAnimate() {
+        viewModel.observeLoadingText { [weak self] text in
             DispatchQueue.main.async {
                 self?.feedView.loadingLabel.text = text
             }
