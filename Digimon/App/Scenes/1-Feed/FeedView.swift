@@ -50,7 +50,7 @@ class FeedView: UIView {
         lbl.font = .preferredFont(forTextStyle: .subheadline)
         lbl.textColor = .label
         lbl.textAlignment = .center
-        lbl.text = "Carregando..."
+        lbl.text = "Carregando"
         return lbl
     }()
     
@@ -90,9 +90,10 @@ class FeedView: UIView {
             spinner.centerXAnchor.constraint(equalTo: bgSpinner.centerXAnchor),
             spinner.centerYAnchor.constraint(equalTo: bgSpinner.centerYAnchor),
             
+            loadingLabel.centerXAnchor.constraint(equalTo: spinner.centerXAnchor),
             loadingLabel.topAnchor.constraint(equalTo: spinner.bottomAnchor, constant: padding),
-            loadingLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: padding),
-            loadingLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -padding),
+//            loadingLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: padding),
+//            loadingLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -padding),
         ])
     }
 }
