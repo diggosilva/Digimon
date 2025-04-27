@@ -54,12 +54,21 @@ class FeedViewController: UIViewController {
             feedView.bgSpinner.isHidden = false
             feedView.spinner.startAnimating()
             feedView.loadingLabel.isHidden = false
+            loadingAnimate()
         } else {
             feedView.bgSpinner.isHidden = true
             feedView.spinner.stopAnimating()
             feedView.loadingLabel.isHidden = true
             feedView.collectionView.reloadData()
             setNeedsUpdateContentUnavailableConfiguration()
+        }
+    }
+    
+    private func loadingAnimate() {
+        viewModel.loadingText.bind { [weak self] text in
+            DispatchQueue.main.async {
+                self?.feedView.loadingLabel.text = text
+            }
         }
     }
     
@@ -70,7 +79,7 @@ class FeedViewController: UIViewController {
     }
     
     private func configureNavBar() {
-        title = "DigiDex"
+        title = "Digimon"
     }
     
     private func configureDelegates() {
