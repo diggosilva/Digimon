@@ -9,7 +9,8 @@ import UIKit
 
 class DetailsViewController: UIViewController {
     
-    var viewModel: DetailsViewModelProtocol
+    let detailsView = DetailsView()
+    let viewModel: DetailsViewModelProtocol
     
     init(viewModel: DetailsViewModelProtocol) {
         self.viewModel = viewModel
@@ -18,10 +19,15 @@ class DetailsViewController: UIViewController {
     
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
+    override func loadView() {
+        super.loadView()
+        view = detailsView
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         configureNavigationBar()
-        view.backgroundColor = .systemBackground
+        configureDelegatesAndDataSources()
     }
     
     private func configureNavigationBar() {
@@ -31,5 +37,36 @@ class DetailsViewController: UIViewController {
     
     @objc private func favoriteTapped() {
         print("Adicionou aos favoritos o digimon: \(viewModel.getDetailsDigimon().name)")
+    }
+    
+    private func configureDelegatesAndDataSources() {
+        detailsView.priorCollection.delegate = self
+        detailsView.priorCollection.dataSource = self
+        detailsView.nextCollection.delegate = self
+        detailsView.nextCollection.dataSource = self
+    }
+}
+
+extension DetailsViewController: UICollectionViewDelegate, UICollectionViewDataSource {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        if collectionView == detailsView.priorCollection {
+            return 3
+        } else if collectionView == detailsView.nextCollection {
+            return 6
+        }
+        return 0
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        if collectionView == detailsView.priorCollection {
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "priorCell", for: indexPath)
+            cell.backgroundColor = .brown
+            return cell
+        } else if collectionView == detailsView.nextCollection {
+            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "nextCell", for: indexPath)
+            cell.backgroundColor = .cyan
+            return cell
+        }
+        return UICollectionViewCell()
     }
 }
