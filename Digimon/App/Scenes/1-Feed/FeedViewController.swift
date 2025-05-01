@@ -107,6 +107,8 @@ class FeedViewController: UIViewController {
 
 extension FeedViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        
+        let digimon = viewModel.cellForItem(at: indexPath)
+        let detailsVC = DetailsViewController(viewModel: DetailsViewModel(digimon: digimon))
+        navigationController?.pushViewController(detailsVC, animated: true)
     }
 }

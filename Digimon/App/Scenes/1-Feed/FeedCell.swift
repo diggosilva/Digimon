@@ -19,6 +19,7 @@ class FeedCell: UICollectionViewCell {
         iv.layer.cornerRadius = 8
         iv.layer.borderWidth = 1
         iv.layer.borderColor = DSColor.primary.cgColor
+        iv.backgroundColor = .white
         return iv
     }()
     
