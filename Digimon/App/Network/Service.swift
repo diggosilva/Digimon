@@ -9,6 +9,7 @@ import Foundation
 
 protocol ServiceProtocol {
     func getDigimons(page: Int, completion: @escaping(Result<[Digimon], DSError>) -> Void)
+    func getDetails(of digimon: Digimon, completion: @escaping(Result<Details, DSError>) -> Void)
 }
 
 final class Service: ServiceProtocol {
@@ -24,6 +25,18 @@ final class Service: ServiceProtocol {
                 
             case .failure(_):
                 completion(.failure(.digimonsFailed))
+            }
+        }
+    }
+    
+    func getDetails(of digimon: Digimon, completion: @escaping(Result<Details, DSError>) -> Void) {
+        fetchData(endpoint: .digimonId(id: digimon.id), decondingType: DetailsResponse.self) { result in
+            switch result {
+            case .success(let detailsResponse):
+                let details = Details(from: detailsResponse)
+                completion(.success(details))
+            case .failure(let error):
+                completion(.failure(error))
             }
         }
     }
