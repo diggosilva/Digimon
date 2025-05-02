@@ -12,7 +12,7 @@ class Details: CustomStringConvertible {
     let name: String
     let imageURLs: [String]
     let fieldNames: [String]
-    let descriptions: [String]
+    let descriptions: String
     let priorEvolutions: [String]
     let nextEvolutions: [String]
     
@@ -21,7 +21,7 @@ class Details: CustomStringConvertible {
         self.name = response.name
         self.imageURLs = response.images.map { $0.href }
         self.fieldNames = response.fields.map { $0.field }
-        self.descriptions = response.descriptions.map { $0.description }
+        self.descriptions = response.descriptions.first { $0.language == "en_us" }?.description ?? "No English description available"
         self.priorEvolutions = response.priorEvolutions.map { $0.digimon }
         self.nextEvolutions = response.nextEvolutions.map { $0.digimon }
     }
@@ -32,7 +32,7 @@ class Details: CustomStringConvertible {
         Name: \(name)
         Images: \(imageURLs.joined(separator: ", "))
         Fields: \(fieldNames.joined(separator: ", "))
-        Descriptions: \(descriptions.joined(separator: " | "))
+        Descriptions: \(descriptions)
         Prior Evolutions: \(priorEvolutions.joined(separator: ", "))
         Next Evolutions: \(nextEvolutions.joined(separator: ", "))
         """
