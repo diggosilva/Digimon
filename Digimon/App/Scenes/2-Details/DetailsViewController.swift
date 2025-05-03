@@ -27,7 +27,8 @@ class DetailsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         configureNavigationBar()
-        configureDelegatesAndDataSources()
+        handleStates()
+        viewModel.fetchDetails()
     }
     
     private func configureNavigationBar() {
@@ -39,34 +40,31 @@ class DetailsViewController: UIViewController {
         print("Adicionou aos favoritos o digimon: \(viewModel.getDetailsDigimon().name)")
     }
     
-    private func configureDelegatesAndDataSources() {
-        detailsView.priorCollection.delegate = self
-        detailsView.priorCollection.dataSource = self
-        detailsView.nextCollection.delegate = self
-        detailsView.nextCollection.dataSource = self
-    }
-}
-
-extension DetailsViewController: UICollectionViewDelegate, UICollectionViewDataSource {
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        if collectionView == detailsView.priorCollection {
-            return 3
-        } else if collectionView == detailsView.nextCollection {
-            return 6
+    private func handleStates() {
+        viewModel.observeState { state in
+            switch state {
+            case .loading:
+                self.showLoadingState()
+                
+            case .loaded(let details):
+                self.showLoadedState(details: details)
+                
+            case .error:
+                self.showErrorState()
+            }
         }
-        return 0
     }
     
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        if collectionView == detailsView.priorCollection {
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "priorCell", for: indexPath)
-            cell.backgroundColor = .brown
-            return cell
-        } else if collectionView == detailsView.nextCollection {
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "nextCell", for: indexPath)
-            cell.backgroundColor = .cyan
-            return cell
-        }
-        return UICollectionViewCell()
+    private func showLoadingState() {
+        print("DEBUG: Carregando...")
+    }
+    
+    private func showLoadedState(details: Details) {
+        detailsView.configure(details: details)
+        print("DEBUG: Carregado com sucesso!")
+    }
+    
+    private func showErrorState() {
+        print("DEBUG: Complicou!")
     }
 }
