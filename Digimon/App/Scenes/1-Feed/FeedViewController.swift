@@ -109,6 +109,9 @@ extension FeedViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let digimon = viewModel.cellForItem(at: indexPath)
         let detailsVC = DetailsViewController(viewModel: DetailsViewModel(digimon: digimon))
+        
+        guard let url = URL(string: digimon.image) else { return }
+        detailsVC.detailsView.imageView.sd_setImage(with: url)
         navigationController?.pushViewController(detailsVC, animated: true)
     }
 }

@@ -9,12 +9,13 @@ import Foundation
 
 protocol ServiceProtocol {
     func getDigimons(page: Int, completion: @escaping(Result<[Digimon], DSError>) -> Void)
+    func getDetails(of digimon: Digimon, completion: @escaping(Result<Details, DSError>) -> Void)
 }
 
 final class Service: ServiceProtocol {
     
     func getDigimons(page: Int, completion: @escaping(Result<[Digimon], DSError>) -> Void) {
-        fetchData(endpoint: .pagedDigimons(page: page), decondingType: DigimonResponse.self) { result in
+        fetchData(endpoint: .pagedDigimons(page: page), decodingType: DigimonResponse.self) { result in
             switch result {
             case .success(let digimonsResponse):
                 let digimons = digimonsResponse.content.map { content in
@@ -28,7 +29,20 @@ final class Service: ServiceProtocol {
         }
     }
     
-    private func fetchData<T: Decodable>(endpoint: DigiEndpoint, decondingType: T.Type, completion: @escaping(Result<T, DSError>) -> Void) {
+    func getDetails(of digimon: Digimon, completion: @escaping(Result<Details, DSError>) -> Void) {
+        fetchData(endpoint: .digimonId(id: digimon.id), decodingType: DetailsResponse.self) { result in
+            switch result {
+            case .success(let detailsResponse):
+                // Mapeamento do DetailsResponse para Details
+                let details = Details(id: detailsResponse.id, name: detailsResponse.name, digiDescriptions: detailsResponse.descriptions.filter { $0.language == "en_us" }.first?.description ?? "")
+                completion(.success(details))
+            case .failure(let error):
+                completion(.failure(error))
+            }
+        }
+    }
+    
+    private func fetchData<T: Decodable>(endpoint: DigiEndpoint, decodingType: T.Type, completion: @escaping(Result<T, DSError>) -> Void) {
         guard let url = createURL(for: endpoint) else {
             completion(.failure(.invalidData))
             return
@@ -52,7 +66,7 @@ final class Service: ServiceProtocol {
                 }
                 
                 do {
-                    let decodedResponse = try JSONDecoder().decode(decondingType, from: data)
+                    let decodedResponse = try JSONDecoder().decode(decodingType, from: data)
                     completion(.success(decodedResponse))
                 } catch {
                     completion(.failure(.failedDecoding))
