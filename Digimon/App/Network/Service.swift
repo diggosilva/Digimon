@@ -33,8 +33,9 @@ final class Service: ServiceProtocol {
         fetchData(endpoint: .digimonId(id: digimon.id), decodingType: DetailsResponse.self) { result in
             switch result {
             case .success(let detailsResponse):
-                // Mapeamento do DetailsResponse para Details
-                let details = Details(id: detailsResponse.id, name: detailsResponse.name, digiDescriptions: detailsResponse.descriptions.filter { $0.language == "en_us" }.first?.description ?? "")
+                let details = Details(id: detailsResponse.id,
+                                      name: detailsResponse.name,
+                                      digiDescriptions: detailsResponse.descriptions.filter { $0.language == "en_us" }.first?.description ?? "")
                 completion(.success(details))
             case .failure(let error):
                 completion(.failure(error))
