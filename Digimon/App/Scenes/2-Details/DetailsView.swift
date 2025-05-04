@@ -17,6 +17,7 @@ class DetailsView: UIView {
         img.layer.cornerRadius = 10
         img.layer.borderWidth = 1
         img.layer.borderColor = UIColor.lightGray.cgColor
+        img.backgroundColor = .white
         return img
     }()
     
@@ -24,9 +25,7 @@ class DetailsView: UIView {
         let lbl = UILabel()
         lbl.translatesAutoresizingMaskIntoConstraints = false
         lbl.font = .preferredFont(forTextStyle: .subheadline)
-        lbl.numberOfLines = 8
-        lbl.adjustsFontSizeToFitWidth = true
-        lbl.minimumScaleFactor = 0.75
+        lbl.numberOfLines = 0
         return lbl
     }()
     
