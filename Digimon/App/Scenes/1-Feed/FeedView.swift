@@ -13,6 +13,11 @@ enum Section {
 
 class FeedView: UIView {
     
+    lazy var refreshControl: UIRefreshControl = {
+        let rc = UIRefreshControl()
+        return rc
+    }()
+    
     lazy var collectionView: UICollectionView  = {
         let layout = UICollectionViewFlowLayout()
         let padding: CGFloat = 14
@@ -25,6 +30,7 @@ class FeedView: UIView {
         let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
         cv.translatesAutoresizingMaskIntoConstraints = false
         cv.register(FeedCell.self, forCellWithReuseIdentifier: FeedCell.identifier)
+        cv.refreshControl = refreshControl
         return cv
     }()
     
@@ -63,6 +69,10 @@ class FeedView: UIView {
     
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
+    func setRefreshTarget(_ target: Any?, action: Selector) {
+        refreshControl.addTarget(target, action: action, for: .valueChanged)
+    }
+    
     private func setupView() {
         setHierarchy()
         setConstraints()
@@ -92,8 +102,6 @@ class FeedView: UIView {
             
             loadingLabel.centerXAnchor.constraint(equalTo: spinner.centerXAnchor),
             loadingLabel.topAnchor.constraint(equalTo: spinner.bottomAnchor, constant: padding),
-//            loadingLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: padding),
-//            loadingLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -padding),
         ])
     }
 }
