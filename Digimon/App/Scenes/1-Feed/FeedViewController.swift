@@ -19,8 +19,17 @@ class FeedViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        handleRefresh()
         configNavBarAndDelegatesAndDataSources()
         handleStates()
+        viewModel.fetchDigimons()
+    }
+    
+    private func handleRefresh() {
+        feedView.setRefreshTarget(self, action: #selector(didPullToRefresh))
+    }
+    
+    @objc private func didPullToRefresh() {
         viewModel.fetchDigimons()
     }
     
@@ -41,6 +50,9 @@ class FeedViewController: UIViewController {
     private func showLoadedState() {
         handleSpinner(isLoading: false)
         updateData(on: viewModel.getDigimons())
+        if feedView.collectionView.refreshControl?.isRefreshing == true {
+            feedView.collectionView.refreshControl?.endRefreshing()
+        }
     }
     
     private func showErrorState() {

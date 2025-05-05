@@ -32,6 +32,8 @@ class FeedViewModel: FeedViewModelProtocol {
     
     private var digimons: [Digimon] = []
     private var page = 0
+    private var isLoading = false
+    private var hasMorePage = true
     
     private let service: ServiceProtocol
     
@@ -48,18 +50,29 @@ class FeedViewModel: FeedViewModelProtocol {
     }
     
     func fetchDigimons() {
+        guard !isLoading, hasMorePage else { return }
+        
+        isLoading = true
         state.value = .loading
         startLoadingAnimation()
         
-        self.service.getDigimons(page: self.page) { result in
+        self.service.getDigimons(page: page) { [weak self] result in
+            guard let self = self else { return }
+            isLoading = false
+            
             switch result {
-            case .success(let digimons):
-                self.digimons = digimons
-                print("DEBUG: Fetched \(digimons)")
+            case .success(let newDigimons):
+                if newDigimons.isEmpty {
+                    hasMorePage = false
+                    return
+                }
+                
+                hasMorePage = true
+                page += 1
+                digimons = newDigimons + self.digimons
                 self.state.value = .loaded
                 
             case .failure:
-                print("DEBUG: Error fetching digimons")
                 self.state.value = .error
             }
             self.stopLoadingAnimation()
