@@ -55,16 +55,13 @@ class DetailsViewController: UIViewController {
         }
     }
     
-    private func showLoadingState() {
-        print("DEBUG: Carregando...")
-    }
+    private func showLoadingState() {}
     
     private func showLoadedState(details: Details) {
         detailsView.configure(details: details)
-        print("DEBUG: Carregado com sucesso!")
     }
     
     private func showErrorState() {
-        print("DEBUG: Complicou!")
+        presentDSAlert(title: "Ops, algo deu errado!", message: DSError.digimonsFailed.rawValue)
     }
 }
