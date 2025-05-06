@@ -19,16 +19,10 @@ protocol FeedViewModelProtocol {
     func fetchDigimons()
     func getDigimons() -> [Digimon]
     func observeState(_ observer: @escaping (FeedViewControllerStates) -> Void)
-    func observeLoadingText(_ observer: @escaping (String) -> Void)
 }
 
 class FeedViewModel: FeedViewModelProtocol {
     private var state: Bindable<FeedViewControllerStates> = Bindable(value: .loading)
-    
-    private var loadingText: Bindable<String> = Bindable(value: "Carregando...")
-    private var loadingTexts = ["Carregando", "Carregando.", "Carregando..", "Carregando..."]
-    private var loadingTextsIndex = 0
-    private var loadingTimer: Timer?
     
     private var digimons: [Digimon] = []
     private var page = 0
@@ -54,7 +48,6 @@ class FeedViewModel: FeedViewModelProtocol {
         
         isLoading = true
         state.value = .loading
-        startLoadingAnimation()
         
         self.service.getDigimons(page: page) { [weak self] result in
             guard let self = self else { return }
@@ -75,7 +68,6 @@ class FeedViewModel: FeedViewModelProtocol {
             case .failure:
                 self.state.value = .error
             }
-            self.stopLoadingAnimation()
         }
     }
     
@@ -83,27 +75,7 @@ class FeedViewModel: FeedViewModelProtocol {
         return digimons
     }
     
-    func startLoadingAnimation() {
-        stopLoadingAnimation()
-        
-        loadingTextsIndex = 0
-        loadingTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
-            guard let self = self else { return }
-            self.loadingText.value = self.loadingTexts[self.loadingTextsIndex]
-            self.loadingTextsIndex = (self.loadingTextsIndex + 1) % self.loadingTexts.count
-        }
-    }
-    
-    func stopLoadingAnimation() {
-        loadingTimer?.invalidate()
-        loadingTimer = nil
-    }
-    
     func observeState(_ observer: @escaping(FeedViewControllerStates) -> Void) {
         state.bind(observer: observer)
-    }
-    
-    func observeLoadingText(_ observer: @escaping(String) -> Void) {
-        loadingText.bind(observer: observer)
     }
 }

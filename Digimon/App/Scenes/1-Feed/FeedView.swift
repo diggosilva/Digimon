@@ -34,32 +34,6 @@ class FeedView: UIView {
         return cv
     }()
     
-    lazy var bgSpinner: UIView = {
-        let view = UIView()
-        view.translatesAutoresizingMaskIntoConstraints = false
-        view.backgroundColor = .label
-        view.isHidden = true
-        view.alpha = 0.25
-        return view
-    }()
-    
-    lazy var spinner: UIActivityIndicatorView = {
-        let spinner = UIActivityIndicatorView(style: .large)
-        spinner.translatesAutoresizingMaskIntoConstraints = false
-        spinner.color = .label
-        return spinner
-    }()
-    
-    lazy var loadingLabel: UILabel = {
-        let lbl = UILabel()
-        lbl.translatesAutoresizingMaskIntoConstraints = false
-        lbl.font = .preferredFont(forTextStyle: .subheadline)
-        lbl.textColor = .label
-        lbl.textAlignment = .center
-        lbl.text = "Carregando"
-        return lbl
-    }()
-    
     var dataSource: UICollectionViewDiffableDataSource<Section, Digimon>!
     
     override init(frame: CGRect) {
@@ -80,28 +54,15 @@ class FeedView: UIView {
     
     private func setHierarchy() {
         backgroundColor = .systemBackground
-        addSubviews(collectionView, bgSpinner, spinner, loadingLabel)
+        addSubviews(collectionView)
     }
     
-    private func setConstraints() {
-        let padding: CGFloat = 8
-        
+    private func setConstraints() {        
         NSLayoutConstraint.activate([
             collectionView.topAnchor.constraint(equalTo: safeAreaLayoutGuide.topAnchor),
             collectionView.leadingAnchor.constraint(equalTo: leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: trailingAnchor),
             collectionView.bottomAnchor.constraint(equalTo: bottomAnchor),
-            
-            bgSpinner.topAnchor.constraint(equalTo: topAnchor),
-            bgSpinner.leadingAnchor.constraint(equalTo: leadingAnchor),
-            bgSpinner.trailingAnchor.constraint(equalTo: trailingAnchor),
-            bgSpinner.bottomAnchor.constraint(equalTo: bottomAnchor),
-            
-            spinner.centerXAnchor.constraint(equalTo: bgSpinner.centerXAnchor),
-            spinner.centerYAnchor.constraint(equalTo: bgSpinner.centerYAnchor),
-            
-            loadingLabel.centerXAnchor.constraint(equalTo: spinner.centerXAnchor),
-            loadingLabel.topAnchor.constraint(equalTo: spinner.bottomAnchor, constant: padding),
         ])
     }
 }

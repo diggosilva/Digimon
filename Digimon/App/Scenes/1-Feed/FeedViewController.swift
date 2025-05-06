@@ -43,45 +43,18 @@ class FeedViewController: UIViewController {
         }
     }
     
-    private func showLoadingState() {
-        handleSpinner(isLoading: true)
-    }
+    private func showLoadingState() {}
     
     private func showLoadedState() {
-        handleSpinner(isLoading: false)
         updateData(on: viewModel.getDigimons())
         if feedView.collectionView.refreshControl?.isRefreshing == true {
             feedView.collectionView.refreshControl?.endRefreshing()
         }
+        feedView.collectionView.reloadData()
     }
     
     private func showErrorState() {
-        presentDSAlert(title: "Ops... algo deu errado!", message: DSError.networkError.rawValue) { action in
-            self.handleSpinner(isLoading: false)
-        }
-    }
-    
-    private func handleSpinner(isLoading: Bool) {
-        if isLoading {
-            feedView.bgSpinner.isHidden = false
-            feedView.spinner.startAnimating()
-            feedView.loadingLabel.isHidden = false
-            handleLoadingAnimate()
-        } else {
-            feedView.bgSpinner.isHidden = true
-            feedView.spinner.stopAnimating()
-            feedView.loadingLabel.isHidden = true
-            feedView.collectionView.reloadData()
-            setNeedsUpdateContentUnavailableConfiguration()
-        }
-    }
-    
-    private func handleLoadingAnimate() {
-        viewModel.observeLoadingText { [weak self] text in
-            DispatchQueue.main.async {
-                self?.feedView.loadingLabel.text = text
-            }
-        }
+        presentDSAlert(title: "Ops... algo deu errado!", message: DSError.networkError.rawValue)
     }
     
     private func configNavBarAndDelegatesAndDataSources() {
