@@ -7,7 +7,8 @@
 
 import Foundation
 
-class Details: Codable, CustomStringConvertible {
+class Details: Codable {
+    
     let id: Int
     let name: String
     let digiDescriptions: String
@@ -16,9 +17,5 @@ class Details: Codable, CustomStringConvertible {
         self.id = id
         self.name = name
         self.digiDescriptions = digiDescriptions
-    }
-    
-    var description: String {
-        return " Details: ID: \(id), Name: \(name), Descriptions: \(digiDescriptions)"
     }
 }

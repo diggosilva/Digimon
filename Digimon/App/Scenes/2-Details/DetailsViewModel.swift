@@ -44,7 +44,6 @@ class DetailsViewModel: DetailsViewModelProtocol {
             switch result {
             case .success(let details):
                 self.state.value = .loaded(details)
-                print("DEBUG: Successfully fetched!")
                 
             case .failure(let error):
                 self.state.value = .error

@@ -7,7 +7,7 @@
 
 import Foundation
 
-class Digimon: Codable, CustomStringConvertible, Hashable {
+class Digimon: Codable, Hashable {
     
     let id: Int
     let name: String
@@ -19,10 +19,6 @@ class Digimon: Codable, CustomStringConvertible, Hashable {
         self.name = name
         self.href = href
         self.image = image
-    }
-    
-    var description: String {
-        return "DIGIMON: id: \(id), nome: \(name), url: \(href), imagem: \(image)"
     }
     
     static func == (lhs: Digimon, rhs: Digimon) -> Bool {
