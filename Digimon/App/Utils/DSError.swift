@@ -12,4 +12,5 @@ enum DSError: String, Error {
     case invalidData = "Os dados recebidos do servidor são inválidos. Tente novamente."
     case failedDecoding = "Não foi possível decodificar os dados."
     case digimonsFailed = "Não foi possível carregar os digimons."
+    case digimonAlreadyExits = "Você já possui esse digimon nos seus favoritos."
 }
