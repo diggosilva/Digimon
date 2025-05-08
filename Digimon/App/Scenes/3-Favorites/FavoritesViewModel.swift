@@ -6,3 +6,21 @@
 //
 
 import Foundation
+
+protocol FavoritesViewModelProtocol {
+    func numberOfRowsInSection() -> Int
+    func cellForRow(at indexPath: IndexPath) -> Digimon
+}
+
+class FavoritesViewModel: FavoritesViewModelProtocol {
+    
+    private var favorites: [Digimon] = []
+    
+    func numberOfRowsInSection() -> Int {
+        return favorites.count
+    }
+    
+    func cellForRow(at indexPath: IndexPath) -> Digimon {
+        return favorites[indexPath.row]
+    }
+}
