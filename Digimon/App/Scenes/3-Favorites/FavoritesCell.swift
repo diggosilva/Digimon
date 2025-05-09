@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import SDWebImage
 
 class FavoritesCell: UITableViewCell {
     
@@ -34,6 +35,13 @@ class FavoritesCell: UITableViewCell {
     }
     
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    
+    func configure(digimon: Digimon) {
+        guard let url = URL(string: digimon.image) else { return }
+        
+        digiImageView.sd_setImage(with: url)
+        nameLabel.text = digimon.name
+    }
     
     private func setupView() {
         setHierarchy()
