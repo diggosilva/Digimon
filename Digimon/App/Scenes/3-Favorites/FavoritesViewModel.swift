@@ -10,17 +10,50 @@ import Foundation
 protocol FavoritesViewModelProtocol {
     func numberOfRowsInSection() -> Int
     func cellForRow(at indexPath: IndexPath) -> Digimon
+    func loadDigimons()
+    func saveDigimons()
+    func removeDigimon(at index: Int)
+    func setDelegate(_ delegate: FavoritesViewModelDelegate)
+}
+
+protocol FavoritesViewModelDelegate: AnyObject {
+    func reloadTable()
 }
 
 class FavoritesViewModel: FavoritesViewModelProtocol {
     
-    private var favorites: [Digimon] = []
+    private var digimons: [Digimon] = []
+    private let repository: RepositoryProtocol
+    
+    weak var delegate: FavoritesViewModelDelegate?
+    
+    init(repository: RepositoryProtocol = Repository()) {
+        self.repository = repository
+        loadDigimons()
+    }
     
     func numberOfRowsInSection() -> Int {
-        return favorites.count
+        return digimons.count
     }
     
     func cellForRow(at indexPath: IndexPath) -> Digimon {
-        return favorites[indexPath.row]
+        return digimons[indexPath.row]
+    }
+    
+    func loadDigimons() {
+        digimons = repository.getDigimons()
+        delegate?.reloadTable()
+    }
+    
+    func saveDigimons() {
+        repository.saveDigimons(digimons)
+    }
+    
+    func removeDigimon(at index: Int) {
+        digimons.remove(at: index)
+    }
+    
+    func setDelegate(_ delegate: FavoritesViewModelDelegate) {
+        self.delegate = delegate
     }
 }
