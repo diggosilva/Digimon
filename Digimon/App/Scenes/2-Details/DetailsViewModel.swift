@@ -11,27 +11,32 @@ enum DetailsViewControllerStates {
     case loading
     case loaded(Details)
     case error
+    case showAlert(title: String, message: String)
 }
 
 protocol DetailsViewModelProtocol {
-    func getDetailsDigimon() -> Digimon
+    func getDigimon() -> Digimon
     func fetchDetails()
+    func addToFavorites(_ digimon: Digimon, completion: @escaping(Result<String, DSError>) -> Void)
     func observeState(_ observer: @escaping(DetailsViewControllerStates) -> Void)
 }
 
 class DetailsViewModel: DetailsViewModelProtocol {
-    private var state: Bindable<DetailsViewControllerStates> = Bindable(value: .loading)
     
+    private var state: Bindable<DetailsViewControllerStates> = Bindable(value: .loading)
     private let digimon: Digimon
-    private let service: ServiceProtocol
     private var details: Details?
     
-    init(digimon: Digimon, service: ServiceProtocol = Service()) {
+    private let service: ServiceProtocol
+    private let repository: RepositoryProtocol
+    
+    init(digimon: Digimon, service: ServiceProtocol = Service(), repository: RepositoryProtocol = Repository()) {
         self.digimon = digimon
         self.service = service
+        self.repository = repository
     }
     
-    func getDetailsDigimon() -> Digimon {
+    func getDigimon() -> Digimon {
         return digimon
     }
     
@@ -48,6 +53,19 @@ class DetailsViewModel: DetailsViewModelProtocol {
             case .failure(let error):
                 self.state.value = .error
                 print("DEBUG: Failed to fetch details: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    func addToFavorites(_ digimon: Digimon, completion: @escaping(Result<String, DSError>) -> Void) {
+        repository.saveDigimon(digimon) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success:
+                    self.state.value = .showAlert(title: "Sucesso! ✅", message: "Digimon adicionado aos favoritos!")
+                case .failure(let error):
+                    self.state.value = .showAlert(title: "Ops... algo deu errado ⛔️", message: error.rawValue)
+                }
             }
         }
     }
