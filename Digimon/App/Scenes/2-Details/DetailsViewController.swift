@@ -32,12 +32,14 @@ class DetailsViewController: UIViewController {
     }
     
     private func configureNavigationBar() {
-        title = viewModel.getDetailsDigimon().name.uppercased()
+        title = viewModel.getDigimon().name.uppercased()
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .add, target: self, action: #selector(favoriteTapped))
     }
     
     @objc private func favoriteTapped() {
-        print("Adicionou aos favoritos o digimon: \(viewModel.getDetailsDigimon().name)")
+        let digimon = viewModel.getDigimon()
+        viewModel.addToFavorites(digimon) { result in }
+        print("Adicionou aos favoritos o digimon: \(viewModel.getDigimon().name)")
     }
     
     private func handleStates() {
@@ -51,6 +53,9 @@ class DetailsViewController: UIViewController {
                 
             case .error:
                 self.showErrorState()
+                
+            case .showAlert(title: let title, message: let message):
+                self.showAlertState(title: title, message: message)
             }
         }
     }
@@ -63,5 +68,9 @@ class DetailsViewController: UIViewController {
     
     private func showErrorState() {
         presentDSAlert(title: "Ops, algo deu errado!", message: DSError.digimonsFailed.rawValue)
+    }
+    
+    private func showAlertState(title: String, message: String) {
+        presentDSAlert(title: title, message: message)
     }
 }

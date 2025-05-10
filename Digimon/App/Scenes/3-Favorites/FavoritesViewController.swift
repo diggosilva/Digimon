@@ -72,6 +72,16 @@ extension FavoritesViewController: UITableViewDelegate, UITableViewDataSource {
         return cell
     }
     
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let digimon = viewModel.cellForRow(at: indexPath)
+        let detailsVC = DetailsViewController(viewModel: DetailsViewModel(digimon: digimon))
+        
+        guard let url = URL(string: digimon.image) else { return }
+        
+        detailsVC.detailsView.imageView.sd_setImage(with: url)
+        navigationController?.pushViewController(detailsVC, animated: true)
+    }
+    
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
             viewModel.removeDigimon(at: indexPath.row)
