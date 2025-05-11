@@ -11,6 +11,7 @@ class FeedViewController: UIViewController {
     
     let feedView = FeedView()
     let viewModel: FeedViewModelProtocol = FeedViewModel()
+    let searchController = UISearchController(searchResultsController: nil)
     
     override func loadView() {
         super.loadView()
@@ -23,6 +24,25 @@ class FeedViewController: UIViewController {
         configNavBarAndDelegatesAndDataSources()
         handleStates()
         viewModel.fetchDigimons()
+    }
+    
+    override func updateContentUnavailableConfiguration(using state: UIContentUnavailableConfigurationState) {
+        if viewModel.numberOfItemsInSection() == 0 {
+            var config = UIContentUnavailableConfiguration.empty()
+            config.image = .init(systemName: "exclamationmark.triangle.fill")?.withTintColor(.systemYellow, renderingMode: .alwaysOriginal)
+            config.text = "Não encontrado"
+            
+            let searchText = searchController.searchBar.text ?? ""
+            
+            if searchText.isEmpty {
+                config.secondaryText = "Nenhum digimon encontrado."
+            } else {
+                config.secondaryText = "Nenhum digimon com o termo '\(searchText)'"
+            }
+            contentUnavailableConfiguration = config
+        } else {
+            contentUnavailableConfiguration = nil
+        }
     }
     
     private func handleRefresh() {
@@ -39,6 +59,7 @@ class FeedViewController: UIViewController {
             case .loading: self.showLoadingState()
             case .loaded: self.showLoadedState()
             case .error: self.showErrorState()
+            case .filteredDigimons(let digimons): self.updateData(on: digimons)
             }
         }
     }
@@ -65,6 +86,12 @@ class FeedViewController: UIViewController {
     
     private func configureNavBar() {
         title = "Digimon"
+        searchController.searchResultsUpdater = self
+        searchController.obscuresBackgroundDuringPresentation = false
+        searchController.searchBar.placeholder = "Digite o nome do digimon..."
+        navigationItem.searchController = searchController
+        navigationItem.hidesSearchBarWhenScrolling = false
+        definesPresentationContext = true
     }
     
     private func configureDelegates() {
@@ -98,5 +125,15 @@ extension FeedViewController: UICollectionViewDelegate {
         guard let url = URL(string: digimon.image) else { return }
         detailsVC.detailsView.imageView.sd_setImage(with: url)
         navigationController?.pushViewController(detailsVC, animated: true)
+    }
+}
+
+extension FeedViewController: UISearchResultsUpdating {
+    func updateSearchResults(for searchController: UISearchController) {
+        guard let filter = searchController.searchBar.text, !filter.isEmpty else {
+            viewModel.searchBar(textDidChange: "")
+            return
+        }
+        viewModel.searchBar(textDidChange: filter)
     }
 }

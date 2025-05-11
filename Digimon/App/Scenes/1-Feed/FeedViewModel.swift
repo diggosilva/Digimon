@@ -11,11 +11,13 @@ enum FeedViewControllerStates {
     case loading
     case loaded
     case error
+    case filteredDigimons([Digimon])
 }
 
 protocol FeedViewModelProtocol {
     func numberOfItemsInSection() -> Int
     func cellForItem(at indexPath: IndexPath) -> Digimon
+    func searchBar(textDidChange searchText: String)
     func fetchDigimons()
     func getDigimons() -> [Digimon]
     func observeState(_ observer: @escaping (FeedViewControllerStates) -> Void)
@@ -25,9 +27,11 @@ class FeedViewModel: FeedViewModelProtocol {
     private var state: Bindable<FeedViewControllerStates> = Bindable(value: .loading)
     
     private var digimons: [Digimon] = []
+    private var filteredDigimons: [Digimon] = []
     private var page = 0
     private var isLoading = false
     private var hasMorePage = true
+    private var isSearching = false
     
     private let service: ServiceProtocol
     
@@ -36,11 +40,22 @@ class FeedViewModel: FeedViewModelProtocol {
     }
     
     func numberOfItemsInSection() -> Int {
-        return digimons.count
+        return filteredDigimons.count
     }
     
     func cellForItem(at indexPath: IndexPath) -> Digimon {
-        return digimons[indexPath.item]
+        return filteredDigimons[indexPath.item]
+    }
+    
+    func searchBar(textDidChange searchText: String) {
+        if searchText.isEmpty {
+            isSearching = false
+            filteredDigimons = digimons
+        } else {
+            isSearching = true
+            filteredDigimons = digimons.filter { $0.name.lowercased().contains(searchText.lowercased()) }
+        }
+        updateState(.filteredDigimons(filteredDigimons))
     }
     
     func fetchDigimons() {
@@ -62,7 +77,8 @@ class FeedViewModel: FeedViewModelProtocol {
                 
                 hasMorePage = true
                 page += 1
-                digimons = newDigimons + self.digimons
+                digimons = newDigimons + digimons
+                filteredDigimons = newDigimons + filteredDigimons
                 self.state.value = .loaded
                 
             case .failure:
@@ -73,6 +89,10 @@ class FeedViewModel: FeedViewModelProtocol {
     
     func getDigimons() -> [Digimon] {
         return digimons
+    }
+    
+    private func updateState(_ newState: FeedViewControllerStates) {
+        state.value = newState
     }
     
     func observeState(_ observer: @escaping(FeedViewControllerStates) -> Void) {
