@@ -76,7 +76,8 @@ class FeedCell: UICollectionViewCell {
             
             digiName.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -padding),
             digiName.leadingAnchor.constraint(equalTo: leadingAnchor, constant: padding),
-            digiName.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -padding)
+            digiName.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -padding),
+            digiName.heightAnchor.constraint(equalToConstant: padding * 3),
         ])
     }
 }
