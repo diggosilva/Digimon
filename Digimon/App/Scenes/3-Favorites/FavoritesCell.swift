@@ -18,6 +18,9 @@ class FavoritesCell: UITableViewCell {
         iv.contentMode = .scaleAspectFit
         iv.image = UIImage(systemName: "person.circle")
         iv.layer.cornerRadius = 25
+        iv.clipsToBounds = true
+        iv.layer.borderWidth = 1
+        iv.layer.borderColor = UIColor.systemGray4.cgColor
         return iv
     }()
     
