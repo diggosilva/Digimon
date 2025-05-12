@@ -42,8 +42,28 @@ class FavoritesViewController: UIViewController {
     
     private func configureDelegatesAndDataSources() {
         favoritesView.tableView.delegate = self
-        favoritesView.tableView.dataSource = self
+        configureDataSource()
         viewModel.setDelegate(self)
+    }
+    
+    private func configureDataSource() {
+        favoritesView.dataSource = FavoritesDiffableDataSource(tableView: favoritesView.tableView, cellProvider: { (tableView, indexPath, digimon) -> UITableViewCell in
+            guard let cell = tableView.dequeueReusableCell(withIdentifier: FavoritesCell.identifier, for: indexPath) as? FavoritesCell else { return UITableViewCell() }
+            cell.configure(digimon: digimon)
+            return cell
+        })
+    }
+    
+    private func updateData(on digimons: [Digimon]) {
+        var snapshot = NSDiffableDataSourceSnapshot<FavoritesSection, Digimon>()
+        snapshot.appendSections([.main])
+        snapshot.appendItems(digimons)
+        
+        DispatchQueue.main.async {
+            self.favoritesView.tableView.layoutIfNeeded() // Força a tabela a recalcular o layout
+            self.favoritesView.dataSource.apply(snapshot, animatingDifferences: true)
+        }
+        setNeedsUpdateContentUnavailableConfiguration()
     }
     
     override func updateContentUnavailableConfiguration(using state: UIContentUnavailableConfigurationState) {
@@ -59,20 +79,17 @@ class FavoritesViewController: UIViewController {
     }
 }
 
-extension FavoritesViewController: UITableViewDelegate, UITableViewDataSource {
-    
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return viewModel.numberOfRowsInSection()
+class FavoritesDiffableDataSource: UITableViewDiffableDataSource<FavoritesSection, Digimon> {
+    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+        return true
     }
-    
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: FavoritesCell.identifier, for: indexPath) as? FavoritesCell else { return UITableViewCell() }
-        let digimon = viewModel.cellForRow(at: indexPath)
-        cell.configure(digimon: digimon)
-        return cell
-    }
+}
+
+extension FavoritesViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        
         let digimon = viewModel.cellForRow(at: indexPath)
         let detailsVC = DetailsViewController(viewModel: DetailsViewModel(digimon: digimon))
         
@@ -82,18 +99,32 @@ extension FavoritesViewController: UITableViewDelegate, UITableViewDataSource {
         navigationController?.pushViewController(detailsVC, animated: true)
     }
     
-    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
-            viewModel.removeDigimon(at: indexPath.row)
-            tableView.deleteRows(at: [indexPath], with: .automatic)
-            viewModel.saveDigimons()
-            setNeedsUpdateContentUnavailableConfiguration()
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let deleteAction = UIContextualAction(style: .destructive, title: "Deletar") { [weak self] (_, _, completionHandler) in
+            guard let self = self else { return }
+            
+            // Obtém o digimon a ser removido
+            let digimonToRemove = self.viewModel.cellForRow(at: indexPath)
+            
+            // Remove o digimon do ViewModel
+            self.viewModel.removeDigimon(at: indexPath.row)
+            self.viewModel.saveDigimons()
+            
+            // Atualiza o snapshot incrementalmente
+            var snapshot = self.favoritesView.dataSource.snapshot()
+            snapshot.deleteItems([digimonToRemove])
+            self.favoritesView.dataSource.apply(snapshot, animatingDifferences: true)
+            
+            completionHandler(true)
         }
+        deleteAction.backgroundColor = .systemRed
+        let configuration = UISwipeActionsConfiguration(actions: [deleteAction])
+        return configuration
     }
 }
 
 extension FavoritesViewController: FavoritesViewModelDelegate {
     func reloadTable() {
-        favoritesView.tableView.reloadData()
+        updateData(on: viewModel.getDigimons())
     }
 }
