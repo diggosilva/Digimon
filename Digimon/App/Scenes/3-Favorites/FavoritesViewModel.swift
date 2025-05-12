@@ -8,6 +8,7 @@
 import Foundation
 
 protocol FavoritesViewModelProtocol {
+    func getDigimons() -> [Digimon]
     func numberOfRowsInSection() -> Int
     func cellForRow(at indexPath: IndexPath) -> Digimon
     func loadDigimons()
@@ -30,6 +31,10 @@ class FavoritesViewModel: FavoritesViewModelProtocol {
     init(repository: RepositoryProtocol = Repository()) {
         self.repository = repository
         loadDigimons()
+    }
+    
+    func getDigimons() -> [Digimon] {
+        return digimons
     }
     
     func numberOfRowsInSection() -> Int {

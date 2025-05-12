@@ -7,14 +7,20 @@
 
 import UIKit
 
+enum FavoritesSection {
+    case main
+}
+
 class FavoritesView: UIView {
     
     lazy var tableView: UITableView = {
-        let tv = UITableView()
+        let tv = UITableView(frame: .zero, style: .insetGrouped)
         tv.translatesAutoresizingMaskIntoConstraints = false
         tv.register(FavoritesCell.self, forCellReuseIdentifier: FavoritesCell.identifier)
         return tv
     }()
+    
+    var dataSource: UITableViewDiffableDataSource<FavoritesSection, Digimon>!
     
     override init(frame: CGRect) {
         super.init(frame: .zero)
