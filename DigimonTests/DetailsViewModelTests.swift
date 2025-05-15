@@ -23,7 +23,7 @@ class MockDetails: ServiceProtocol {
     }
 }
 
-class MockRepository: RepositoryProtocol {
+class MockDetailsRepository: RepositoryProtocol {
     
     var shouldSucceed: Bool = true
     
@@ -80,7 +80,7 @@ final class DetailsViewModelTests: XCTestCase {
     func testAddToFavoritesSuccess() {
         let digimon = Digimon(id: 1, name: "Alfamon", href: "", image: "")
         let mockService = MockDetails()
-        let mockRepository = MockRepository()
+        let mockRepository = MockDetailsRepository()
         mockRepository.shouldSucceed = true
 
         let sut = DetailsViewModel(digimon: digimon, service: mockService, repository: mockRepository)
@@ -107,7 +107,7 @@ final class DetailsViewModelTests: XCTestCase {
         let digimon = Digimon(id: 2, name: "Betamon", href: "", image: "")
         let mockService = MockDetails()
         
-        let mockRepository = MockRepository()
+        let mockRepository = MockDetailsRepository()
         mockRepository.shouldSucceed = false
         
         let sut = DetailsViewModel(digimon: digimon, service: mockService, repository: mockRepository)
