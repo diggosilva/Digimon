@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Combine
 
 enum FeedViewControllerStates {
     case loading
@@ -14,17 +15,16 @@ enum FeedViewControllerStates {
     case filteredDigimons([Digimon])
 }
 
-protocol FeedViewModelProtocol {
+protocol FeedViewModelProtocol: StatefulViewModel where State == FeedViewControllerStates {
     func numberOfItemsInSection() -> Int
     func cellForItem(at indexPath: IndexPath) -> Digimon
     func searchBar(textDidChange searchText: String)
     func fetchDigimons()
     func getDigimons() -> [Digimon]
-    func observeState(_ observer: @escaping (FeedViewControllerStates) -> Void)
+//    func observeState(_ observer: @escaping (FeedViewControllerStates) -> Void)
 }
 
 class FeedViewModel: FeedViewModelProtocol {
-    private var state: Bindable<FeedViewControllerStates> = Bindable(value: .loading)
     
     private var digimons: [Digimon] = []
     private var filteredDigimons: [Digimon] = []
@@ -34,6 +34,12 @@ class FeedViewModel: FeedViewModelProtocol {
     private var isSearching = false
     
     private let service: ServiceProtocol
+    
+    @Published private var state: FeedViewControllerStates = .loading
+    
+    var statePublisher: AnyPublisher<FeedViewControllerStates, Never> {
+        $state.eraseToAnyPublisher()
+    }
     
     init(service: ServiceProtocol = Service()) {
         self.service = service
@@ -62,40 +68,70 @@ class FeedViewModel: FeedViewModelProtocol {
         guard !isLoading, hasMorePage else { return }
         
         isLoading = true
-        state.value = .loading
+        state = .loading
         
-        self.service.getDigimons(page: page) { [weak self] result in
+        Task { [weak self] in
             guard let self = self else { return }
-            isLoading = false
-            
-            switch result {
-            case .success(let newDigimons):
+            do {
+                let newDigimons = try await service.getDigimons(page: page)
+                
                 if newDigimons.isEmpty {
-                    hasMorePage = false
+                    self.hasMorePage = false
+                    self.isLoading = false
                     return
                 }
                 
-                hasMorePage = true
-                page += 1
-                digimons = newDigimons + digimons
-                filteredDigimons = newDigimons + filteredDigimons
-                self.state.value = .loaded
+                self.page += 1
+                self.digimons += newDigimons
+                self.filteredDigimons = self.isSearching ? self.filteredDigimons : self.digimons
+                self.state = .loaded
                 
-            case .failure:
-                self.state.value = .error
+            } catch {
+                self.state = .error
             }
+            self.isLoading = false
         }
     }
+
+    
+//    func fetchDigimons() {
+//        guard !isLoading, hasMorePage else { return }
+//        
+//        isLoading = true
+//        state = .loading
+//        
+//        self.service.getDigimons(page: page) { [weak self] result in
+//            guard let self = self else { return }
+//            isLoading = false
+//            
+//            switch result {
+//            case .success(let newDigimons):
+//                if newDigimons.isEmpty {
+//                    hasMorePage = false
+//                    return
+//                }
+//                
+//                hasMorePage = true
+//                page += 1
+//                digimons = newDigimons + digimons
+//                filteredDigimons = newDigimons + filteredDigimons
+//                self.state = .loaded
+//                
+//            case .failure:
+//                self.state = .error
+//            }
+//        }
+//    }
     
     func getDigimons() -> [Digimon] {
         return digimons
     }
     
     private func updateState(_ newState: FeedViewControllerStates) {
-        state.value = newState
+        state = newState
     }
     
-    func observeState(_ observer: @escaping(FeedViewControllerStates) -> Void) {
-        state.bind(observer: observer)
-    }
+//    func observeState(_ observer: @escaping(FeedViewControllerStates) -> Void) {
+//        state.bind(observer: observer)
+//    }
 }
