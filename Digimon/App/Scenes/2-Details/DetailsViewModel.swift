@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Combine
 
 enum DetailsViewControllerStates {
     case loading
@@ -14,21 +15,25 @@ enum DetailsViewControllerStates {
     case showAlert(title: String, message: String)
 }
 
-protocol DetailsViewModelProtocol {
+protocol DetailsViewModelProtocol: StatefulViewModel where State == DetailsViewControllerStates {
     func getDigimon() -> Digimon
     func fetchDetails()
     func addToFavorites(_ digimon: Digimon, completion: @escaping(Result<String, DSError>) -> Void)
-    func observeState(_ observer: @escaping(DetailsViewControllerStates) -> Void)
 }
 
 class DetailsViewModel: DetailsViewModelProtocol {
     
-    private var state: Bindable<DetailsViewControllerStates> = Bindable(value: .loading)
     private let digimon: Digimon
     private var details: Details?
     
     private let service: ServiceProtocol
     private let repository: RepositoryProtocol
+    
+    @Published private var state: DetailsViewControllerStates = .loading
+    
+    var statePublisher: AnyPublisher<DetailsViewControllerStates, Never> {
+        $state.eraseToAnyPublisher()
+    }
     
     init(digimon: Digimon, service: ServiceProtocol = Service(), repository: RepositoryProtocol = Repository()) {
         self.digimon = digimon
@@ -41,17 +46,16 @@ class DetailsViewModel: DetailsViewModelProtocol {
     }
     
     func fetchDetails() {
-        state.value = .loading
+        state = .loading
         
-        service.getDetails(of: digimon) { [weak self] result in
+        Task { [weak self] in
             guard let self = self else { return }
-            
-            switch result {
-            case .success(let details):
-                self.state.value = .loaded(details)
-                
-            case .failure(let error):
-                self.state.value = .error
+            do {
+                let details = try await service.getDetails(of: digimon)
+                self.details = details
+                self.state = .loaded(details)
+            } catch {
+                self.state = .error
                 print("DEBUG: Failed to fetch details: \(error.localizedDescription)")
             }
         }
@@ -62,15 +66,11 @@ class DetailsViewModel: DetailsViewModelProtocol {
             DispatchQueue.main.async {
                 switch result {
                 case .success:
-                    self.state.value = .showAlert(title: "Sucesso! ✅", message: "Digimon adicionado aos favoritos!")
+                    self.state = .showAlert(title: "Sucesso! ✅", message: "Digimon adicionado aos favoritos!")
                 case .failure(let error):
-                    self.state.value = .showAlert(title: "Ops... algo deu errado ⛔️", message: error.rawValue)
+                    self.state = .showAlert(title: "Ops... algo deu errado ⛔️", message: error.rawValue)
                 }
             }
         }
-    }
-    
-    func observeState(_ observer: @escaping(DetailsViewControllerStates) -> Void) {
-        state.bind(observer: observer)
     }
 }
