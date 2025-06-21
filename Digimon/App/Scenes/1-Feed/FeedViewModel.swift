@@ -21,7 +21,6 @@ protocol FeedViewModelProtocol: StatefulViewModel where State == FeedViewControl
     func searchBar(textDidChange searchText: String)
     func fetchDigimons()
     func getDigimons() -> [Digimon]
-//    func observeState(_ observer: @escaping (FeedViewControllerStates) -> Void)
 }
 
 class FeedViewModel: FeedViewModelProtocol {
@@ -92,36 +91,6 @@ class FeedViewModel: FeedViewModelProtocol {
             self.isLoading = false
         }
     }
-
-    
-//    func fetchDigimons() {
-//        guard !isLoading, hasMorePage else { return }
-//        
-//        isLoading = true
-//        state = .loading
-//        
-//        self.service.getDigimons(page: page) { [weak self] result in
-//            guard let self = self else { return }
-//            isLoading = false
-//            
-//            switch result {
-//            case .success(let newDigimons):
-//                if newDigimons.isEmpty {
-//                    hasMorePage = false
-//                    return
-//                }
-//                
-//                hasMorePage = true
-//                page += 1
-//                digimons = newDigimons + digimons
-//                filteredDigimons = newDigimons + filteredDigimons
-//                self.state = .loaded
-//                
-//            case .failure:
-//                self.state = .error
-//            }
-//        }
-//    }
     
     func getDigimons() -> [Digimon] {
         return digimons
@@ -130,8 +99,4 @@ class FeedViewModel: FeedViewModelProtocol {
     private func updateState(_ newState: FeedViewControllerStates) {
         state = newState
     }
-    
-//    func observeState(_ observer: @escaping(FeedViewControllerStates) -> Void) {
-//        state.bind(observer: observer)
-//    }
 }
