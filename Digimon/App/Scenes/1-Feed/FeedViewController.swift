@@ -6,12 +6,14 @@
 //
 
 import UIKit
+import Combine
 
 class FeedViewController: UIViewController {
     
     let feedView = FeedView()
-    let viewModel: FeedViewModelProtocol = FeedViewModel()
+    let viewModel: any FeedViewModelProtocol = FeedViewModel()
     let searchController = UISearchController(searchResultsController: nil)
+    var cancellables = Set<AnyCancellable>()
     
     override func loadView() {
         super.loadView()
@@ -54,14 +56,14 @@ class FeedViewController: UIViewController {
     }
     
     private func handleStates() {
-        viewModel.observeState { state in
+        viewModel.statePublisher.receive(on: RunLoop.main).sink { state in
             switch state {
             case .loading: self.showLoadingState()
             case .loaded: self.showLoadedState()
             case .error: self.showErrorState()
             case .filteredDigimons(let digimons): self.updateData(on: digimons)
             }
-        }
+        }.store(in: &cancellables)
     }
     
     private func showLoadingState() {}

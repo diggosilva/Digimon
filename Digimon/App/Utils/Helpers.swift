@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import Combine
 
 //MARK: EXTENSION VIEW
 extension UIView {
@@ -32,4 +33,10 @@ final class DSColor {
 
 func color(r: CGFloat, g: CGFloat, b: CGFloat, a: CGFloat) -> UIColor {
     return UIColor(red: r / 255, green: g / 255, blue: b / 255, alpha: a)
+}
+
+//MARK: PROTOCOL STATEFUL VIEWMODEL
+protocol StatefulViewModel {
+    associatedtype State
+    var statePublisher: AnyPublisher<State, Never> { get }
 }
