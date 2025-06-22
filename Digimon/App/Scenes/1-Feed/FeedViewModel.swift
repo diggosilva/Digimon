@@ -8,7 +8,7 @@
 import Foundation
 import Combine
 
-enum FeedViewControllerStates {
+enum FeedViewControllerStates: Equatable {
     case loading
     case loaded
     case error
