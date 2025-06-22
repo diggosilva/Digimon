@@ -81,7 +81,7 @@ class FeedViewModel: FeedViewModelProtocol {
                 }
                 
                 self.page += 1
-                self.digimons += newDigimons
+                self.digimons = newDigimons + self.digimons
                 self.filteredDigimons = self.isSearching ? self.filteredDigimons : self.digimons
                 self.state = .loaded
                 
