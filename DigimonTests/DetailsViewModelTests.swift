@@ -6,128 +6,166 @@
 //
 
 import XCTest
+import Combine
 @testable import Digimon
 
 class MockDetails: ServiceProtocol {
-    
     var isSuccess: Bool = true
-    
-    func getDigimons(page: Int, completion: @escaping (Result<[Digimon], DSError>) -> Void) {}
-    
-    func getDetails(of digimon: Digimon, completion: @escaping (Result<Details, DSError>) -> Void) {
+
+    func getDigimons(page: Int) async throws -> [Digimon] { return [] }
+
+    func getDetails(of digimon: Digimon) async throws -> Details {
         if isSuccess {
-            completion(.success(Details(id: 1, name: "Alfamon", digiDescriptions: "")))
+            return Details(id: 1, name: "Alfamon", digiDescriptions: "Um digimon poderoso e misterioso.")
         } else {
-            completion(.failure(.digimonsFailed))
+            throw DSError.digimonsFailed
         }
     }
 }
 
 class MockDetailsRepository: RepositoryProtocol {
-    
     var shouldSucceed: Bool = true
-    
+    var savedDigimon: Digimon?
+
     func getDigimons() -> [Digimon] {
         return []
     }
-    
+
     func saveDigimon(_ digimon: Digimon, completion: @escaping (Result<String, DSError>) -> Void) {
         if shouldSucceed {
+            savedDigimon = digimon
             completion(.success("Digimon adicionado com sucesso!"))
         } else {
             completion(.failure(.digimonsFailed))
         }
     }
-    
+
     func saveDigimons(_ digimons: [Digimon]) {}
 }
 
 final class DetailsViewModelTests: XCTestCase {
-    
-    func testWhenSuccess() {
-        let digimon = Digimon(id: 1, name: "Alfamon", href: "", image: "")
-        let mockService = MockDetails()
-        let sut = DetailsViewModel(digimon: digimon, service: mockService)
-        
-        sut.fetchDetails()
-        
-        let name = sut.getDigimon().name
-        XCTAssertEqual(name, "Alfamon")
-        XCTAssertTrue(sut.getDigimon().id == 1)
+
+    var cancellables = Set<AnyCancellable>()
+    var digimon: Digimon!
+    var mockService: MockDetails!
+    var mockRepository: MockDetailsRepository!
+    var sut: DetailsViewModel!
+
+    override func setUp() {
+        super.setUp()
+        // Configuração comum para todos os testes
+        digimon = Digimon(id: 1, name: "Alfamon", href: "http://example.com/alfamon", image: "http://example.com/alfamon.png")
+        mockService = MockDetails()
+        mockRepository = MockDetailsRepository()
+        sut = DetailsViewModel(digimon: digimon, service: mockService, repository: mockRepository)
     }
-    
-    func testWhenFailure() {
-        let digimon = Digimon(id: 1, name: "Alfamon", href: "", image: "")
-        let mockService = MockDetails()
-        mockService.isSuccess = false
 
-        let sut = DetailsViewModel(digimon: digimon, service: mockService)
-        
-        var capturedState: DetailsViewControllerStates?
-        sut.observeState { state in
-            capturedState = state
-        }
-        
-        sut.fetchDetails()
-        
-        if case .error = capturedState {
-            print("DEBUG: TUDO CERTO POR AQUI")
-        } else {
-            XCTFail("Esperado o estado .error, mas recebeu .success")
-        }
+    override func tearDown() {
+        // Limpeza após cada teste
+        cancellables.removeAll()
+        digimon = nil
+        mockService = nil
+        mockRepository = nil
+        sut = nil
+        super.tearDown()
     }
-    
-    func testAddToFavoritesSuccess() {
-        let digimon = Digimon(id: 1, name: "Alfamon", href: "", image: "")
-        let mockService = MockDetails()
-        let mockRepository = MockDetailsRepository()
-        mockRepository.shouldSucceed = true
 
-        let sut = DetailsViewModel(digimon: digimon, service: mockService, repository: mockRepository)
+    // MARK: - Testes do ViewModel
 
-        var capturedState: DetailsViewControllerStates?
-        sut.observeState { state in
-            capturedState = state
-        }
+    func testWhenSuccess() async throws {
+        let expectation = XCTestExpectation(description: "State deveria ser .loaded com os detalhes do digimon")
+
+        sut.statePublisher
+            .sink { state in
+                if case .loaded(let details) = state {
+                    XCTAssertEqual(details.name, "Alfamon")
+                    XCTAssertEqual(details.id, 1)
+                    expectation.fulfill()
+                } else if case .loading = state {
+                    // Ignora o estado inicial de carregamento
+                } else {
+                    XCTFail("Esperado estado .loaded, mas recebeu \(state)")
+                }
+            }
+            .store(in: &cancellables)
+
+        sut.fetchDetails()
+
+        await fulfillment(of: [expectation], timeout: 2.0)
+
+        // Assegura que o ViewModel ainda contém o digimon original e correto
+        XCTAssertEqual(sut.getDigimon().name, "Alfamon")
+        XCTAssertEqual(sut.getDigimon().id, 1)
+    }
+
+    func testWhenFailure() async {
+        mockService.isSuccess = false // Configura o mock para simular uma falha
+        let expectation = XCTestExpectation(description: "State deveria ser .error")
+
+        sut.statePublisher
+            .sink { state in
+                if case .error = state {
+                    expectation.fulfill()
+                } else if case .loading = state {
+                    // Ignora o estado inicial de carregamento
+                } else {
+                    XCTFail("Esperado estado .error, mas recebeu \(state)")
+                }
+            }
+            .store(in: &cancellables)
+
+        sut.fetchDetails()
+
+        await fulfillment(of: [expectation], timeout: 2.0)
+    }
+
+    func testAddToFavoritesSuccess() async {
+        mockRepository.shouldSucceed = true // Configura o mock para sucesso na persistência
+        let expectation = XCTestExpectation(description: "State deveria ser .showAlert de sucesso")
+
+        sut.statePublisher
+            .sink { state in
+                if case let .showAlert(title, message) = state {
+                    XCTAssertEqual(title, "Sucesso! ✅")
+                    XCTAssertEqual(message, "Digimon adicionado aos favoritos!")
+                    expectation.fulfill()
+                } else if case .loading = state {
+                    // Ignora o estado inicial de carregamento
+                } else {
+                    XCTFail("Esperado estado .showAlert de sucesso, mas recebeu \(state)")
+                }
+            }
+            .store(in: &cancellables)
 
         sut.addToFavorites(digimon) { _ in }
 
-        // Permite que o DispatchQueue.main.async seja processado
-        waitForMainQueueExecution()
+        await fulfillment(of: [expectation], timeout: 1.0)
+        XCTAssertEqual(mockRepository.savedDigimon?.name, "Alfamon", "O digimon correto deveria ter sido salvo no repositório.")
+    }
 
-        if case let .showAlert(title, message) = capturedState {
-            XCTAssertEqual(title, "Sucesso! ✅")
-            XCTAssertEqual(message, "Digimon adicionado aos favoritos!")
-        } else {
-            XCTFail("Esperado estado .showAlert, mas recebeu \(String(describing: capturedState))")
-        }
-    }
-    
-    func testAddToFavoritesFailure() {
-        let digimon = Digimon(id: 2, name: "Betamon", href: "", image: "")
-        let mockService = MockDetails()
-        
-        let mockRepository = MockDetailsRepository()
-        mockRepository.shouldSucceed = false
-        
-        let sut = DetailsViewModel(digimon: digimon, service: mockService, repository: mockRepository)
-        
-        var capturedState: DetailsViewControllerStates?
-        sut.observeState { state in
-            capturedState = state
-        }
-        
+    func testAddToFavoritesFailure() async {
+        mockRepository.shouldSucceed = false // Configura o mock para falha na persistência
+        let expectation = XCTestExpectation(description: "State deveria ser .showAlert de falha")
+
+        sut.statePublisher
+            .sink { state in
+                if case let .showAlert(title, message) = state {
+                    XCTAssertEqual(title, "Ops... algo deu errado ⛔️")
+                    
+                    // A mensagem de erro deve corresponder exatamente ao rawValue do DSError
+                    XCTAssertEqual(message, DSError.digimonsFailed.rawValue)
+                    expectation.fulfill()
+                } else if case .loading = state {
+                    
+                    // Ignora o estado inicial de carregamento
+                } else {
+                    XCTFail("Esperado estado .showAlert de falha, mas recebeu \(state)")
+                }
+            }
+            .store(in: &cancellables)
+
         sut.addToFavorites(digimon) { _ in }
-        
-        waitForMainQueueExecution()
-        
-        if case let .showAlert(title, message) = capturedState {
-            XCTAssertEqual(title, "Ops... algo deu errado ⛔️")
-            XCTAssertEqual(message, "Não foi possível carregar os digimons.")
-        }
-    }
-    
-    func waitForMainQueueExecution(timeout: TimeInterval = 0.01) {
-        RunLoop.current.run(until: Date().addingTimeInterval(timeout))
+
+        await fulfillment(of: [expectation], timeout: 1.0)
     }
 }
