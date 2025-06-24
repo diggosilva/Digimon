@@ -31,9 +31,12 @@ A simple iOS application written in Swift, built for practical refresh control a
 - Search Controller
 - Modern CollectionView Diffable
 - Modern TableView Diffable
+- MVVM with Combine
+- Await/Async Request
 - UserDefaults
 - Custom elements
 - Dark Mode
+- Unit Tests
 
 ## Requirements
 
