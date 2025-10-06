@@ -9,20 +9,6 @@ import XCTest
 import Combine
 @testable import Digimon
 
-class MockDetails: ServiceProtocol {
-    var isSuccess: Bool = true
-
-    func getDigimons(page: Int) async throws -> [Digimon] { return [] }
-
-    func getDetails(of digimon: Digimon) async throws -> Details {
-        if isSuccess {
-            return Details(id: 1, name: "Alfamon", digiDescriptions: "Um digimon poderoso e misterioso.")
-        } else {
-            throw DSError.digimonsFailed
-        }
-    }
-}
-
 class MockDetailsRepository: RepositoryProtocol {
     var shouldSucceed: Bool = true
     var savedDigimon: Digimon?
@@ -47,7 +33,7 @@ final class DetailsViewModelTests: XCTestCase {
 
     var cancellables = Set<AnyCancellable>()
     var digimon: Digimon!
-    var mockService: MockDetails!
+    var mockService: MockService!
     var mockRepository: MockDetailsRepository!
     var sut: DetailsViewModel!
 
@@ -55,7 +41,7 @@ final class DetailsViewModelTests: XCTestCase {
         super.setUp()
         // Configuração comum para todos os testes
         digimon = Digimon(id: 1, name: "Alfamon", href: "http://example.com/alfamon", image: "http://example.com/alfamon.png")
-        mockService = MockDetails()
+        mockService = MockService()
         mockRepository = MockDetailsRepository()
         sut = DetailsViewModel(digimon: digimon, service: mockService, repository: mockRepository)
     }
@@ -72,7 +58,7 @@ final class DetailsViewModelTests: XCTestCase {
 
     // MARK: - Testes do ViewModel
 
-    func testWhenSuccess() async throws {
+    func testWhenSuccess() async {
         let expectation = XCTestExpectation(description: "State deveria ser .loaded com os detalhes do digimon")
 
         sut.statePublisher

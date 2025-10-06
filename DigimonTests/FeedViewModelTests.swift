@@ -9,28 +9,6 @@ import XCTest
 import Combine
 @testable import Digimon
 
-class MockFeed: ServiceProtocol {
-    
-    var isSuccess: Bool = true
-    var shouldReturnEmpty: Bool = false
-    
-    func getDigimons(page: Int) async throws -> [Digimon] {
-        if isSuccess {
-            if shouldReturnEmpty {
-                return []
-            }
-            return [
-                Digimon(id: 1, name: "Alfamon", href: "", image: ""),
-                Digimon(id: 2, name: "Betamon", href: "", image: ""),
-            ]
-        } else {
-            throw DSError.digimonsFailed
-        }
-    }
-    
-    func getDetails(of digimon: Digimon) async throws -> Details { throw DSError.digimonsFailed }
-}
-
 final class DigimonTests: XCTestCase {
     
     private var cancellables = Set<AnyCancellable>()
@@ -44,8 +22,8 @@ final class DigimonTests: XCTestCase {
         super.tearDown()
     }
     
-    func testWhenSuccess() async throws {
-        let mockService = MockFeed()
+    func testWhenSuccess() async {
+        let mockService = MockService()
         let sut = FeedViewModel(service: mockService)
         let expectation = XCTestExpectation(description: "State deveria ser .loaded")
         
@@ -59,7 +37,7 @@ final class DigimonTests: XCTestCase {
         
         sut.fetchDigimons()
         
-        await fulfillment(of: [expectation], timeout: 2.0)
+        await fulfillment(of: [expectation], timeout: 1.0)
         
         XCTAssertEqual(sut.numberOfItemsInSection(), 2)
         
@@ -75,8 +53,8 @@ final class DigimonTests: XCTestCase {
         XCTAssertEqual(sut.getDigimons().count, 2)
     }
     
-    func testWhenFailure() async throws {
-        let mockService = MockFeed()
+    func testWhenFailure() async {
+        let mockService = MockService()
         mockService.isSuccess = false
         let sut = FeedViewModel(service: mockService)
         let expectation = XCTestExpectation(description: "State deveria ser .failed")
@@ -91,13 +69,13 @@ final class DigimonTests: XCTestCase {
         
         sut.fetchDigimons()
         
-        await fulfillment(of: [expectation], timeout: 2.0)
+        await fulfillment(of: [expectation], timeout: 1.0)
         
         XCTAssertEqual(sut.numberOfItemsInSection(), 0)
     }
     
-    func testWhenEmptyDigimonsList() async throws {
-        let mockService = MockFeed()
+    func testWhenEmptyDigimonsList() async {
+        let mockService = MockService()
         mockService.shouldReturnEmpty = true
         
         let sut = FeedViewModel(service: mockService)
@@ -114,6 +92,6 @@ final class DigimonTests: XCTestCase {
         sut.fetchDigimons()
         XCTAssertEqual(sut.numberOfItemsInSection(), 0)
         
-        await fulfillment(of: [expectation], timeout: 2.0)
+        await fulfillment(of: [expectation], timeout: 1.0)
     }
 }
