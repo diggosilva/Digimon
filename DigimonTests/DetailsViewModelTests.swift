@@ -9,32 +9,12 @@ import XCTest
 import Combine
 @testable import Digimon
 
-class MockDetailsRepository: RepositoryProtocol {
-    var shouldSucceed: Bool = true
-    var savedDigimon: Digimon?
-
-    func getDigimons() -> [Digimon] {
-        return []
-    }
-
-    func saveDigimon(_ digimon: Digimon, completion: @escaping (Result<String, DSError>) -> Void) {
-        if shouldSucceed {
-            savedDigimon = digimon
-            completion(.success("Digimon adicionado com sucesso!"))
-        } else {
-            completion(.failure(.digimonsFailed))
-        }
-    }
-
-    func saveDigimons(_ digimons: [Digimon]) {}
-}
-
 final class DetailsViewModelTests: XCTestCase {
 
     var cancellables = Set<AnyCancellable>()
     var digimon: Digimon!
     var mockService: MockService!
-    var mockRepository: MockDetailsRepository!
+    var mockRepository: MockRepository!
     var sut: DetailsViewModel!
 
     override func setUp() {
@@ -42,7 +22,7 @@ final class DetailsViewModelTests: XCTestCase {
         // Configuração comum para todos os testes
         digimon = Digimon(id: 1, name: "Alfamon", href: "http://example.com/alfamon", image: "http://example.com/alfamon.png")
         mockService = MockService()
-        mockRepository = MockDetailsRepository()
+        mockRepository = MockRepository()
         sut = DetailsViewModel(digimon: digimon, service: mockService, repository: mockRepository)
     }
 

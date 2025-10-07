@@ -8,25 +8,6 @@
 import XCTest
 @testable import Digimon
 
-class MockFavoritesRepository: RepositoryProtocol {
-    
-    var shouldSucceed: Bool = true
-    var digimonsToReturn: [Digimon] = []
-    var savedDigimons: [Digimon]?
-    var savedDigimonsCalled = false
-    
-    func getDigimons() -> [Digimon] {
-        return digimonsToReturn
-    }
-    
-    func saveDigimon(_ digimon: Digimon, completion: @escaping (Result<String, DSError>) -> Void) {}
-    
-    func saveDigimons(_ digimons: [Digimon]) {
-        savedDigimonsCalled = true
-        savedDigimons = digimons
-    }
-}
-
 class MockFavoritesDelegate: FavoritesViewModelDelegate {
     var reloadTableCalled = false
     
@@ -42,7 +23,7 @@ final class FavoritesViewModelTests: XCTestCase {
     ]
     
     func testLoadDigimonsShouldLoadFromRepositoryAndNotifyDelegate() {
-        let mockRepository = MockFavoritesRepository()
+        let mockRepository = MockRepository()
         mockRepository.digimonsToReturn = backupDigimons
         
         let sut = FavoritesViewModel(repository: mockRepository)
@@ -57,7 +38,7 @@ final class FavoritesViewModelTests: XCTestCase {
     }
     
     func testNumberOfRowShouldReturnCountOfDigimons() {
-        let mockRepository = MockFavoritesRepository()
+        let mockRepository = MockRepository()
         mockRepository.digimonsToReturn = backupDigimons
         
         let sut = FavoritesViewModel(repository: mockRepository)
@@ -67,7 +48,7 @@ final class FavoritesViewModelTests: XCTestCase {
     }
     
     func testCellForRowShouldReturnCellWithDigimonName() {
-        let mockRepository = MockFavoritesRepository()
+        let mockRepository = MockRepository()
         mockRepository.digimonsToReturn = backupDigimons
         
         let sut = FavoritesViewModel(repository: mockRepository)
@@ -78,7 +59,7 @@ final class FavoritesViewModelTests: XCTestCase {
     }
     
     func testRemoveDigimonShouldRemoveCorrectItem() {
-        let mockRepository = MockFavoritesRepository()
+        let mockRepository = MockRepository()
         mockRepository.digimonsToReturn = backupDigimons
         
         let sut = FavoritesViewModel(repository: mockRepository)
@@ -91,7 +72,7 @@ final class FavoritesViewModelTests: XCTestCase {
     }
     
     func testSaveDigimonsShouldCallRepositoryWithCurrentDigimons() {
-        let mockRepository = MockFavoritesRepository()
+        let mockRepository = MockRepository()
         mockRepository.digimonsToReturn = backupDigimons
         
         let sut = FavoritesViewModel(repository: mockRepository)
