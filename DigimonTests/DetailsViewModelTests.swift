@@ -12,33 +12,23 @@ import Combine
 final class DetailsViewModelTests: XCTestCase {
 
     var cancellables = Set<AnyCancellable>()
-    var digimon: Digimon!
-    var mockService: MockService!
-    var mockRepository: MockRepository!
-    var sut: DetailsViewModel!
 
     override func setUp() {
         super.setUp()
-        // Configuração comum para todos os testes
-        digimon = Digimon(id: 1, name: "Alfamon", href: "http://example.com/alfamon", image: "http://example.com/alfamon.png")
-        mockService = MockService()
-        mockRepository = MockRepository()
-        sut = DetailsViewModel(digimon: digimon, service: mockService, repository: mockRepository)
     }
 
     override func tearDown() {
-        // Limpeza após cada teste
         cancellables.removeAll()
-        digimon = nil
-        mockService = nil
-        mockRepository = nil
-        sut = nil
         super.tearDown()
     }
 
     // MARK: - Testes do ViewModel
 
     func testWhenSuccess() async {
+        let digimon = Digimon(id: 1, name: "Alfamon", href: "http://example.com/alfamon", image: "http://example.com/alfamon.png")
+        let mockService = MockService()
+        let mockRepository = MockRepository()
+        let sut = DetailsViewModel(digimon: digimon, service: mockService, repository: mockRepository)
         let expectation = XCTestExpectation(description: "State deveria ser .loaded com os detalhes do digimon")
 
         sut.statePublisher
@@ -57,7 +47,7 @@ final class DetailsViewModelTests: XCTestCase {
 
         sut.fetchDetails()
 
-        await fulfillment(of: [expectation], timeout: 2.0)
+        await fulfillment(of: [expectation], timeout: 0.01)
 
         // Assegura que o ViewModel ainda contém o digimon original e correto
         XCTAssertEqual(sut.getDigimon().name, "Alfamon")
@@ -65,6 +55,11 @@ final class DetailsViewModelTests: XCTestCase {
     }
 
     func testWhenFailure() async {
+        let digimon = Digimon(id: 1, name: "Alfamon", href: "http://example.com/alfamon", image: "http://example.com/alfamon.png")
+        let mockService = MockService()
+        let mockRepository = MockRepository()
+        let sut = DetailsViewModel(digimon: digimon, service: mockService, repository: mockRepository)
+        
         mockService.isSuccess = false // Configura o mock para simular uma falha
         let expectation = XCTestExpectation(description: "State deveria ser .error")
 
@@ -82,10 +77,15 @@ final class DetailsViewModelTests: XCTestCase {
 
         sut.fetchDetails()
 
-        await fulfillment(of: [expectation], timeout: 2.0)
+        await fulfillment(of: [expectation], timeout: 0.01)
     }
 
     func testAddToFavoritesSuccess() async {
+        let digimon = Digimon(id: 1, name: "Alfamon", href: "http://example.com/alfamon", image: "http://example.com/alfamon.png")
+        let mockService = MockService()
+        let mockRepository = MockRepository()
+        let sut = DetailsViewModel(digimon: digimon, service: mockService, repository: mockRepository)
+        
         mockRepository.shouldSucceed = true // Configura o mock para sucesso na persistência
         let expectation = XCTestExpectation(description: "State deveria ser .showAlert de sucesso")
 
@@ -105,11 +105,16 @@ final class DetailsViewModelTests: XCTestCase {
 
         sut.addToFavorites(digimon) { _ in }
 
-        await fulfillment(of: [expectation], timeout: 1.0)
+        await fulfillment(of: [expectation], timeout: 0.01)
         XCTAssertEqual(mockRepository.savedDigimon?.name, "Alfamon", "O digimon correto deveria ter sido salvo no repositório.")
     }
 
     func testAddToFavoritesFailure() async {
+        let digimon = Digimon(id: 1, name: "Alfamon", href: "http://example.com/alfamon", image: "http://example.com/alfamon.png")
+        let mockService = MockService()
+        let mockRepository = MockRepository()
+        let sut = DetailsViewModel(digimon: digimon, service: mockService, repository: mockRepository)
+        
         mockRepository.shouldSucceed = false // Configura o mock para falha na persistência
         let expectation = XCTestExpectation(description: "State deveria ser .showAlert de falha")
 
@@ -132,6 +137,6 @@ final class DetailsViewModelTests: XCTestCase {
 
         sut.addToFavorites(digimon) { _ in }
 
-        await fulfillment(of: [expectation], timeout: 1.0)
+        await fulfillment(of: [expectation], timeout: 0.01)
     }
 }
