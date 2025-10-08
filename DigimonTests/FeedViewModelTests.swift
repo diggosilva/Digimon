@@ -37,7 +37,7 @@ final class DigimonTests: XCTestCase {
         
         sut.fetchDigimons()
         
-        await fulfillment(of: [expectation], timeout: 1.0)
+        await fulfillment(of: [expectation], timeout: 0.01)
         
         XCTAssertEqual(sut.numberOfItemsInSection(), 2)
         
@@ -69,7 +69,7 @@ final class DigimonTests: XCTestCase {
         
         sut.fetchDigimons()
         
-        await fulfillment(of: [expectation], timeout: 1.0)
+        await fulfillment(of: [expectation], timeout: 0.01)
         
         XCTAssertEqual(sut.numberOfItemsInSection(), 0)
     }
@@ -92,6 +92,6 @@ final class DigimonTests: XCTestCase {
         sut.fetchDigimons()
         XCTAssertEqual(sut.numberOfItemsInSection(), 0)
         
-        await fulfillment(of: [expectation], timeout: 1.0)
+        await fulfillment(of: [expectation], timeout: 0.01)
     }
 }
